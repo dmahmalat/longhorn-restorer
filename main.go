@@ -160,7 +160,7 @@ func main() {
 			log.Errorf("Error running the backup restore operation: %s", err)
 		}
 	} else {
-		log.Infof("Volumes already restored. Nothing to do.")
+		log.Info("Volumes already restored. Nothing to do.")
 	}
 
 	// [Debug] to keep alive for attaching
