@@ -119,7 +119,11 @@ func triggerCronJob(name string, namespace string, token string) error {
 				"controller": true
 			}]
 		},
-		"spec": ` + jobSpec + `
+		"spec": {
+			"template": {
+				"spec": ` + jobSpec + `
+			}
+		}
 	}`
 
 	// Start manual job
