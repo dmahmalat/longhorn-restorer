@@ -1,0 +1,22 @@
+apiVersion: v2
+type: application
+name: longhorn-restorer
+description: Auto restore longhorn volumes
+
+version: 0.0.0-template
+appVersion: 0.0.0-template
+
+icon: https://cncf-branding.netlify.app/img/projects/longhorn/icon/color/longhorn-icon-color.svg
+home: https://ghcr.io/dmahmalat/charts
+
+sources:
+- https://github.com/dmahmalat/longhorn-restorer
+
+keywords:
+- longhorn
+- backup
+- restore
+
+maintainers:
+- name: dmahmalat
+  email: dany@mahmalat.com

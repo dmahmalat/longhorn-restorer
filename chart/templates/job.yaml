@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "longhorn-restorer.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  annotations:
+    "helm.sh/hook": "post-install"
+  labels:
+    chart: {{ include "longhorn-restorer.chart" . }}
+spec:
+  template:
+    metadata:
+      name: {{ include "longhorn-restorer.fullname" . }}
+      namespace: {{ .Release.Namespace | quote }}
+      labels:
+        app: {{ include "longhorn-restorer.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ include "longhorn-restorer.fullname" . }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: KUBERNETES_APISERVER
+          value: {{ .Values.apiServer | quote }}
