@@ -81,7 +81,7 @@ func triggerCronJob(name string, namespace string, token string) error {
 	// Get the Cronjob info
 	cronJob, err := sendRequest("GET", fmt.Sprintf("%s/apis/batch/v1/namespaces/%s/cronjobs/%s", apiServer, namespace, name), token, nil)
 	if err != nil {
-		log.Errorf("Error retreiving cronjob info: %s", err)
+		log.Fatalf("Error retreiving cronjob info: %s", err)
 	}
 
 	// Fetch variables
@@ -129,7 +129,7 @@ func triggerCronJob(name string, namespace string, token string) error {
 	// Start manual job
 	_, err = sendRequest("POST", fmt.Sprintf("%s/apis/batch/v1/namespaces/%s/jobs", apiServer, namespace), token, strings.NewReader(jobJson))
 	if err != nil {
-		log.Errorf("Error manually creating job %s: %s", jobName, err)
+		log.Fatalf("Error manually creating job %s: %s", jobName, err)
 	}
 
 	log.Infof("Created manual job: %s", jobName)
@@ -146,21 +146,38 @@ func main() {
 
 	backupVolumes, err := sendRequest("GET", fmt.Sprintf("%s/v1/backupvolumes", longhornServer), "", nil)
 	if err != nil {
-		log.Errorf("Error retreiving backup volume info: %s", err)
+		log.Fatalf("Error retreiving backup volume info: %s", err)
 	}
 
 	// Check if backup volumes exist
-	// [DEBUG] Add named volumes
+	// [TODO] Add named volumes
 	volumeData := gjson.Get(string(backupVolumes), "data").Raw
 	if volumeData == "[]" {
 		// Trigger cronjob to restore the backup
 		log.Info("No volumes found. Restoring.")
 		err = triggerCronJob(minioRestoreJobName, namespace, token)
 		if err != nil {
-			log.Errorf("Error running the backup restore operation: %s", err)
+			log.Fatalf("Error running the backup restore operation: %s", err)
+		}
+
+		// Wait for volumes to be restored
+		backupVolumesFound := false
+		for !backupVolumesFound {
+			time.Sleep(time.Duration(30) * time.Second)
+
+			backupVolumes, err = sendRequest("GET", fmt.Sprintf("%s/v1/backupvolumes", longhornServer), "", nil)
+			if err != nil {
+				log.Fatalf("Error retreiving backup volume info: %s", err)
+			}
+
+			volumeData = gjson.Get(string(backupVolumes), "data").Raw
+			if volumeData != "[]" {
+				backupVolumesFound = true
+			}
 		}
 	} else {
 		log.Info("Volumes already restored. Nothing to do.")
+		os.Exit(0)
 	}
 
 	// [Debug] to keep alive for attaching
