@@ -118,7 +118,7 @@ func triggerCronJob(name string, namespace string, token string) error {
 				"controller": true
 			}]
 		},
-		"spec": "` + jobSpec + `"
+		"spec": ` + jobSpec + `
 	}`
 
 	log.Infof("Job spec: %s", jobJson)
