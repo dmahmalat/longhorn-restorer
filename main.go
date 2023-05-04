@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"time"
@@ -22,6 +23,18 @@ var (
 
 	minioRestoreJobName = "minio-restore"
 )
+
+func randomAlphaNumeric(length int) string {
+	charSet := "abcdefghijklmnopqrstuvwxyz0123456789"
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charSet[rng.Intn(len(charSet)-1)]
+	}
+
+	return string(b)
+}
 
 func readFile(path string) string {
 	fileBytes, err := os.ReadFile(path)
@@ -70,9 +83,17 @@ func triggerCronJob(name string, namespace string, token string) error {
 		log.Errorf("Error retreiving cronjob info: %s", err)
 	}
 
+	// Parse information for the Job creation
+	jobName := fmt.Sprintf("%s-manual-%s",
+		gjson.Get(string(cronJob), "metadata.name"),
+		randomAlphaNumeric(5),
+	)
+	jobName = jobName[:63] // trim max Kubernetes allowed name length
+
+	jobUid := gjson.Get(string(cronJob), "metadata.uid")
 	jobSpec := gjson.Get(string(cronJob), "spec.jobTemplate.spec.template.spec")
 	log.Infof("Cronjob: %s", string(cronJob))
-	log.Infof("Jobs spec: %s", jobSpec.String())
+	log.Infof("Job %s/%s spec: %s", jobName, jobUid, jobSpec.String())
 
 	return nil
 }
