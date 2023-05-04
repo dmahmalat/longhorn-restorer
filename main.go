@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -51,6 +52,7 @@ func sendRequest(method string, url string, token string, body io.Reader) ([]byt
 	}
 
 	// Send the request
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatalf("Error performing request: %s", err)
