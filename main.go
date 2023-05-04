@@ -88,7 +88,11 @@ func triggerCronJob(name string, namespace string, token string) error {
 		gjson.Get(string(cronJob), "metadata.name"),
 		randomAlphaNumeric(5),
 	)
-	jobName = jobName[:63] // trim max Kubernetes allowed name length
+
+	// trim max Kubernetes allowed name length
+	if len(jobName) > 63 {
+		jobName = jobName[:63]
+	}
 
 	jobUid := gjson.Get(string(cronJob), "metadata.uid")
 	jobSpec := gjson.Get(string(cronJob), "spec.jobTemplate.spec.template.spec")
