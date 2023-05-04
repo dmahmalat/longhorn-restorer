@@ -83,22 +83,45 @@ func triggerCronJob(name string, namespace string, token string) error {
 		log.Errorf("Error retreiving cronjob info: %s", err)
 	}
 
-	// Parse information for the Job creation
+	// Fetch variables
+	cronJobName := gjson.Get(string(cronJob), "metadata.name").String()
+	cronJobUid := gjson.Get(string(cronJob), "metadata.uid").String()
+	jobSpec := gjson.Get(string(cronJob), "spec.jobTemplate.spec.template.spec").String()
+
+	// Generate the Job name
 	jobName := fmt.Sprintf("%s-manual-%s",
-		gjson.Get(string(cronJob), "metadata.name"),
+		cronJobName,
 		randomAlphaNumeric(5),
 	)
 
-	// trim max Kubernetes allowed name length
+	// Trim max Kubernetes allowed name length
 	if len(jobName) > 63 {
 		jobName = jobName[:63]
 	}
 
-	jobUid := gjson.Get(string(cronJob), "metadata.uid")
-	jobSpec := gjson.Get(string(cronJob), "spec.jobTemplate.spec.template.spec")
-	log.Infof("Cronjob: %s", string(cronJob))
-	log.Infof("Job %s/%s spec: %s", jobName, jobUid, jobSpec.String())
+	// Build the job JSON
+	jobJson := `{
+		"apiVersion": "batch/v1",
+		"kind": "Job",
+		"metadata": {
+			"name": "` + jobName + `",
+			"namespace": "` + namespace + `",
+			"annotations": {
+				"cronjob.kubernetes.io/instantiate": "manual"
+			},
+			"ownerReferences": [{
+				"apiVersion": "batch/v1",
+				"kind": "CronJob",
+				"name": "` + cronJobName + `",
+				"uid": "` + cronJobUid + `",
+				"blockOwnerDeletion": true,
+				"controller": true
+			}]
+		},
+		"spec": "` + jobSpec + `"
+	}`
 
+	log.Infof("Job spec: %s", jobJson)
 	return nil
 }
 
