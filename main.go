@@ -149,13 +149,18 @@ func main() {
 		log.Errorf("Error retreiving backup volume info: %s", err)
 	}
 
-	// [Debug] Do something
-	log.Infof("Backup volume info: %s", string(backupVolumes))
-
-	// Trigger cronjob to restore the backup
-	err = triggerCronJob(minioRestoreJobName, namespace, token)
-	if err != nil {
-		log.Errorf("Error running the backup restore operation: %s", err)
+	// Check if backup volumes exist
+	// [DEBUG] Add named volumes
+	volumeData := gjson.Get(string(backupVolumes), "data").Raw
+	if volumeData == "[]" {
+		// Trigger cronjob to restore the backup
+		log.Info("No volumes found. Restoring.")
+		err = triggerCronJob(minioRestoreJobName, namespace, token)
+		if err != nil {
+			log.Errorf("Error running the backup restore operation: %s", err)
+		}
+	} else {
+		log.Infof("Volumes already restored. Nothing to do.")
 	}
 
 	// [Debug] to keep alive for attaching
