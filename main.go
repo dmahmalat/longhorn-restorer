@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/tidwall/gjson"
@@ -121,7 +122,13 @@ func triggerCronJob(name string, namespace string, token string) error {
 		"spec": ` + jobSpec + `
 	}`
 
-	log.Infof("Job spec: %s", jobJson)
+	// Start manual job
+	_, err = sendRequest("POST", fmt.Sprintf("%s/apis/batch/v1/namespaces/%s/jobs", apiServer, namespace), token, strings.NewReader(jobJson))
+	if err != nil {
+		log.Errorf("Error manually creating job %s: %s", jobName, err)
+	}
+
+	log.Infof("Created manual job: %s", jobName)
 	return nil
 }
 
