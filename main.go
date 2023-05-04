@@ -175,8 +175,10 @@ func main() {
 				backupVolumesFound = true
 			}
 		}
+
+		log.Info("Volume backups restored to Longhorn.")
 	} else {
-		log.Info("Volumes already restored. Nothing to do.")
+		log.Info("Volumes already present in Longhorn. Nothing to do.")
 		os.Exit(0)
 	}
 
