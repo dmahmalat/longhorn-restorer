@@ -86,7 +86,7 @@ func triggerCronJob(name string, namespace string, token string) error {
 	// Fetch variables
 	cronJobName := gjson.Get(string(cronJob), "metadata.name").String()
 	cronJobUid := gjson.Get(string(cronJob), "metadata.uid").String()
-	jobSpec := gjson.Get(string(cronJob), "spec.jobTemplate.spec.template.spec").String()
+	jobSpec := gjson.Get(string(cronJob), "spec.jobTemplate.spec.template.spec").Raw
 
 	// Generate the Job name
 	jobName := fmt.Sprintf("%s-manual-%s",
