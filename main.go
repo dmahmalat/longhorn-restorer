@@ -23,6 +23,7 @@ var (
 	longhornServer = "http://longhorn-frontend.core-services.svc"
 
 	minioRestoreJobName = "minio-restore"
+	refreshDuration     = 10
 )
 
 func randomAlphaNumeric(length int) string {
@@ -163,7 +164,7 @@ func main() {
 		// Wait for volumes to be restored
 		backupVolumesFound := false
 		for !backupVolumesFound {
-			time.Sleep(time.Duration(30) * time.Second)
+			time.Sleep(time.Duration(refreshDuration) * time.Second)
 
 			backupVolumes, err = sendRequest("GET", fmt.Sprintf("%s/v1/backupvolumes", longhornServer), "", nil)
 			if err != nil {
