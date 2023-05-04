@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 )
 
@@ -21,12 +22,6 @@ var (
 
 	minioRestoreJobName = "minio-restore"
 )
-
-// type CronJob struct {
-// 	Type          string `json:"type"`
-// 	Initialized   bool   `json:"initialized"`
-// 	KeysThreshold int    `json:"t"`
-// }
 
 func readFile(path string) string {
 	fileBytes, err := os.ReadFile(path)
@@ -75,7 +70,9 @@ func triggerCronJob(name string, namespace string, token string) error {
 		log.Errorf("Error retreiving cronjob info: %s", err)
 	}
 
+	jobSpec := gjson.Get(string(cronJob), "spec.jobTemplate.spec.template.spec")
 	log.Infof("Cronjob: %s", string(cronJob))
+	log.Infof("Jobs spec: %s", jobSpec.String())
 
 	return nil
 }
