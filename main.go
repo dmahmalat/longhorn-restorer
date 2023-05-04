@@ -150,8 +150,7 @@ func main() {
 		log.Fatalf("Error retreiving backup volume info: %s", err)
 	}
 
-	// Check if backup volumes exist
-	// [TODO] Add named volumes
+	// [TODO] Check for named volumes?
 	volumeData := gjson.Get(string(backupVolumes), "data").Raw
 	if volumeData == "[]" {
 		// Trigger cronjob to restore the backup
@@ -182,6 +181,8 @@ func main() {
 		log.Info("Volumes already present in Longhorn. Nothing to do.")
 		os.Exit(0)
 	}
+
+	// Fetch volume data
 
 	// [Debug] to keep alive for attaching
 	for {
